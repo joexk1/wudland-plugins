@@ -1,6 +1,6 @@
 // Pairing, plugin side. See "Pairing" in PROTOCOL.md.
 import { randomBytes } from 'node:crypto';
-import { b64, derivePairKey, generateKeyPair, open, pairTopic, unb64 } from './crypto.mjs';
+import { b64, derivePairKey, generateKeyPair, open, pairTopic, unb64, verificationCode } from './crypto.mjs';
 import { poll, publish } from './relay.mjs';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -30,6 +30,7 @@ export async function pair({
 
   const deadline = Date.now() + timeoutMs;
   let announced = false;
+  let challenge = null;
   while (Date.now() < deadline) {
     if (!announced) { onProgress('waiting'); announced = true; }
     await sleep(pollMs);
@@ -40,9 +41,17 @@ export async function pair({
       try { o = JSON.parse(m.message); } catch { continue; }
       if (!o || o.to !== nonceB64) continue;
       if (o.t === 'deny') throw new Error('The request was declined on the phone.');
-      if (o.t !== 'welcome') continue;
+      if (o.t === 'challenge' && !challenge) {
+        try {
+          const key = derivePairKey(kp.privateKey, unb64(o.pk), nonce);
+          challenge = { pk: o.pk, key };
+          onProgress('verify', verificationCode(key));
+        } catch { /* malformed public key */ }
+        continue;
+      }
+      if (o.t !== 'welcome' || !challenge || o.pk !== challenge.pk) continue;
       try {
-        const key = derivePairKey(kp.privateKey, unb64(o.pk), nonce);
+        const key = challenge.key;
         const link = JSON.parse(open(key, o.box).toString('utf8'));
         if (!link.id || !link.inbox || !link.key) throw new Error('incomplete');
         return { id: link.id, inbox: link.inbox, key: link.key, relay: link.relay || relay };

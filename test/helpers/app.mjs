@@ -1,6 +1,6 @@
 // Plays the iPhone app's side of the protocol, following PROTOCOL.md.
 import { createHmac, randomBytes } from 'node:crypto';
-import { b64, derivePairKey, generateKeyPair, open, pairTopic, seal, unb64 } from '../../lib/crypto.mjs';
+import { b64, derivePairKey, generateKeyPair, open, pairTopic, seal, unb64, verificationCode } from '../../lib/crypto.mjs';
 import { parseNdjson } from '../../lib/relay.mjs';
 
 /** RFC 6238: HMAC-SHA1, 60 s step, 6 digits, T0 = 0. */
@@ -40,6 +40,8 @@ export class FakeApp {
       const link = { id: randomBytes(8).toString('hex'), inbox: `wudland-${randomBytes(16).toString('hex')}`, key: randomBytes(32), nonce: o.nonce, hello: o };
       const eph = generateKeyPair();
       const k = derivePairKey(eph.privateKey, unb64(o.pk), unb64(o.nonce));
+      await fetch(`${this.relayUrl}/${topic}`, { method: 'POST', body: JSON.stringify({ t: 'challenge', v: 1, to: o.nonce, pk: b64(eph.publicKey) }) });
+      link.verificationCode = verificationCode(k);
       const box = seal(k, JSON.stringify({ id: link.id, inbox: link.inbox, key: b64(link.key), relay: this.relayUrl }));
       await fetch(`${this.relayUrl}/${topic}`, { method: 'POST', body: JSON.stringify({ t: 'welcome', v: 1, to: o.nonce, pk: b64(eph.publicKey), box }) });
       this.links.push(link);

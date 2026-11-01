@@ -74,3 +74,10 @@ export function pairTopic(code) {
 export const b64 = (buf) => Buffer.from(buf).toString('base64');
 export const unb64 = (s) => Buffer.from(s, 'base64');
 export const randomHex = (n) => randomBytes(n).toString('hex');
+
+/** Compare on both devices before approving a pairing. Never transmit this value. */
+export function verificationCode(key) {
+  const value = createHash('sha256').update('wudland-verify-v1:').update(key).digest().readUInt32BE(0) % 100000000;
+  const digits = String(value).padStart(8, '0');
+  return `${digits.slice(0, 4)} ${digits.slice(4)}`;
+}

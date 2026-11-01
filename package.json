@@ -13,6 +13,6 @@
   "license": "MIT",
   "author": "joexk1",
   "repository": { "type": "git", "url": "git+https://github.com/joexk1/wudland-plugins.git" },
-  "homepage": "https://github.com/joexk1/wudland-plugins#readme",
+  "homepage": "https://wudland.netlify.app",
   "keywords": ["wudland", "claude-code", "codex", "opencode", "agents"]
 }

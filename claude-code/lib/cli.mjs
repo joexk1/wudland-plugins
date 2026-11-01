@@ -66,9 +66,10 @@ async function cmdLink(args) {
     const link = await pair({
       code, relay, host, name: values.name || 'Wudland Link', kind: values.kind || 'cli',
       timeoutMs: values.timeout ? Number(values.timeout) * 1000 : 120000,
-      onProgress: (p) => {
+      onProgress: (p, code) => {
         if (p === 'sent') out('Sent the request.');
-        if (p === 'waiting') out('Waiting for you to tap Allow on your phone…');
+        if (p === 'waiting') out('Waiting for the phone…');
+        if (p === 'verify') out(`Compare this code with your phone: ${code}\nOnly tap Codes match on the phone if both codes match exactly.`);
       },
     });
     cfg.links = cfg.links.filter((l) => l.id !== link.id);

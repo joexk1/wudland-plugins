@@ -2,7 +2,8 @@
 
 How tools on your computers (Claude Code, Codex, opencode, any script) show up in the Wudland iPhone app.
 No accounts and no Wudland server. Messages go through an ntfy-compatible relay (default `https://ntfy.sh`)
-and are end-to-end encrypted, so the relay only ever sees random topic names and ciphertext.
+with end-to-end encryption for event and letter content. The relay sees random topics, timing/IP metadata,
+and plaintext pairing metadata (computer label, tool kind, host label and ephemeral public keys); it does not receive the verification code or linked inbox key in plaintext.
 
 ## Primitives
 - X25519 key agreement, raw 32-byte public keys.
@@ -24,17 +25,24 @@ and are end-to-end encrypted, so the relay only ever sees random topic names and
    - `kind`: `claude` | `codex` | `opencode` | `cli` | anything short.
    - `host`: a short machine label (default: hostname before the first dot, lowercased, max 24 chars).
 2. The app, while the Link screen is open, polls `GET {relay}/{pairTopicNow},{pairTopicPrev}/json?poll=1&since=2m` (one request, comma-separated topics) every 3 s. Each line is an ntfy message object; the JSON above is in `.message`.
-3. The app asks the user "Let *Claude Code on studio* into Wudland?". On Allow it creates a link:
-   - `id`: 8 random bytes, hex (16 chars)
-   - `inbox`: `"wudland-" + hex(16 random bytes)`
-   - `key`: 32 random bytes
-   It makes its own ephemeral X25519 pair, computes
-   `k = HKDF-SHA256(ikm: X25519(appEph, pluginPk), salt: nonce, info: "wudland-pair-v1", 32)`
-   and POSTs to the same pair topic:
-   `{"t":"welcome","v":1,"to":"<the plugin's nonce b64>","pk":"<app eph pubkey b64>","box":"<b64 box>"}`
-   where the box plaintext is `{"id":"…","inbox":"…","key":"<b64 32 bytes>","relay":"https://ntfy.sh"}`.
-4. The plugin polls the pair topic (`?poll=1&since=<unix seconds it sent hello - 5>`) every 3 s for up to 120 s, finds the welcome with `to == nonce`, decrypts with the same HKDF, and saves the link to `~/.config/wudland/link.json` (mode 0600). One file can hold several links (an array), in case the user has two phones.
-5. If the user taps Deny, the app posts `{"t":"deny","v":1,"to":"<nonce>"}`.
+3. The app creates an ephemeral X25519 pair and derives
+   `k = HKDF-SHA256(ikm: X25519(appEph, pluginPk), salt: nonce, info: "wudland-pair-v1", 32)`.
+   It posts `{"t":"challenge","v":1,"to":"<plugin nonce b64>","pk":"<app eph pubkey b64>"}`.
+   Both sides calculate a verification code: SHA256 of UTF-8 `"wudland-verify-v1:"` followed by the raw derived key;
+   interpret the first four digest bytes as an unsigned big-endian integer, modulo 100000000, zero-pad to 8 digits,
+   display as `1234 5678`. **Never transmit this verification code through the relay.**
+4. The CLI displays that verification code. The phone displays the matching code alongside the request's computer name.
+   The user compares both screens and taps **Codes match** only if the codes match exactly. A mismatch must be denied.
+   This comparison authenticates the ephemeral key exchange against an active relay substituting public keys.
+   The original six-digit token is only a discovery code; it is not itself proof of identity. Requests expire after 120 seconds.
+5. Only after confirmation, the app creates a link: random 8-byte hex `id`, random 16-byte hex `inbox` prefixed `wudland-`,
+   and a random 32-byte `key`. It sends
+   `{"t":"welcome","v":1,"to":"<nonce>","pk":"<same app ephemeral pubkey>","box":"<b64 AES-GCM box>"}`.
+   Box plaintext is `{"id":"…","inbox":"…","key":"<b64 32 bytes>","relay":"https://ntfy.sh"}` encrypted with `k`.
+   The CLI pins the first challenge public key and ignores welcome messages with a different public key or no prior challenge.
+6. The plugin polls every 3 seconds for at most 120 seconds. It saves the confirmed link in
+   `~/.config/wudland/link.json` (mode 0600). One file can hold several links.
+7. Deny posts `{"t":"deny","v":1,"to":"<nonce>"}`. A forged denial can interrupt pairing but cannot expose a link key.
 
 ## Events (computer -> phone)
 POST `{relay}/{inbox}` with the body `w1.<b64 box>` encrypted with the link `key` (random 12-byte nonce each time).
@@ -57,10 +65,10 @@ Plaintext:
   Users who want more can point `relay` at their own ntfy server (`wudland config relay https://ntfy.example.com`).
 
 ## The app reading events
-`GET {relay}/{inbox1},{inbox2},…/json?poll=1&since=<last message id, or 12h>` (all links in one request) every 8 s while the app is open, and once on return to the foreground. Decrypt; drop anything that fails to decrypt. Sessions with no event for 45 minutes are shown as asleep; after 24 hours they are forgotten.
+`GET {relay}/{inbox1},{inbox2},…/json?poll=1&since=<last message id, or 12h>` (all links in one request) every 8 s while the app is open, and once on return to the foreground. Decrypt; drop anything that fails to decrypt. The authenticated payload `at` must be less than 24 hours old and at most 5 minutes in the future; relay timestamps are not trusted. Persist the latest 1000 encrypted-box SHA256 fingerprints to reject duplicates across restarts; ignore session updates older than or equal to the latest authenticated session timestamp. Letter IDs derive from the link ID and encrypted-box fingerprint. Sessions with no event for 45 minutes are shown as asleep; after 24 hours they are forgotten.
 
 ## Unlinking
 The app forgets the link (the inbox goes quiet). `wudland unlink` removes it on the computer.
 
 ## Test vector
-`test/vectors.json` holds a fixed key, nonce, plaintext and box so the Swift side can check interop.
+`plugins/test/vectors.json` holds a fixed key, nonce, plaintext and box so the Swift side can check interop.

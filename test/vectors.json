@@ -16,7 +16,8 @@
     "hkdfHash": "SHA-256",
     "hkdfSalt": "101112131415161718191a1b1c1d1e1f",
     "hkdfInfo": "wudland-pair-v1",
-    "derivedKey": "20e0dfea8988ef22021b01d32281ea33d5638d11b3a4b43b4dafce05cd126958"
+    "derivedKey": "20e0dfea8988ef22021b01d32281ea33d5638d11b3a4b43b4dafce05cd126958",
+    "verificationCode": "4785 3108"
   },
   "pairTopic": {
     "code": "123456",

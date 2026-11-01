@@ -47,7 +47,8 @@ test('pairing end to end against a fake relay, then events and letters decrypt',
 
   const r = await linkRun;
   assert.equal(r.code, 0, r.stderr);
-  assert.match(r.stdout, /Waiting for you to tap Allow on your phone/);
+  assert.match(r.stdout, /Compare this code with your phone: \d{4} \d{4}/);
+  assert.ok(r.stdout.includes(app.links[0].verificationCode));
   assert.match(r.stdout, /Linked\. This computer will show up in Wudland\./);
 
   const linkFile = join(home, 'link.json');

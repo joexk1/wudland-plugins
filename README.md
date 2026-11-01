@@ -10,7 +10,7 @@
 
 [Wudland](https://github.com/joexk1/wudland) is a small pixel village on my iPhone where my AI agents live as villagers. This repo is the bit that sits on your computer and tells the app what your agents are up to: working, waiting for you, finished, or in trouble.
 
-It works with Claude Code, Codex, opencode, and anything else you can run in a terminal. There is no account and no Wudland server. Messages go through an ntfy relay and are encrypted before they leave your machine. More about the app at https://wudland.pages.dev.
+It works with Claude Code, Codex, opencode, and anything else you can run in a terminal. There is no account and no Wudland server. Messages go through an ntfy relay and are encrypted before they leave your machine. More about the app at https://wudland.netlify.app.
 
 You need Node 18 or newer.
 
@@ -69,9 +69,9 @@ For scripts that want more control there is `wudland emit --src myscript --state
 
 1. Open Wudland, go to Settings, then Link a computer. It shows a 6 digit code that changes every minute.
 2. On the computer, run `wudland link 123456` with that code.
-3. Tap Allow on your phone when it asks.
+3. Compare the separate 8-digit verification code on your computer and phone. If they match, tap Codes match on your phone. If they differ, deny the connection.
 
-You will see "Waiting for you to tap Allow on your phone" until you do. After that, `wudland test-send` should put a villager in the app. You only link once per computer, and every agent on it shares that link. Linking two phones works too.
+You will see "Waiting for you to approve on your phone" until you do. After that, `wudland test-send` should put a villager in the app. You only link once per computer, and every agent on it shares that link. Linking two phones works too.
 
 ## Letters
 
@@ -89,8 +89,8 @@ Each update has the session's name, the folder it is in, its state, the last too
 
 I never send file contents, command lines, prompts beyond a 60 character title, or the agent's replies.
 
-- Everything is end-to-end encrypted with AES-256-GCM. The key is created by your phone and handed to your computer inside an X25519 key exchange when you link. It never goes anywhere else.
-- The relay (ntfy.sh by default) only sees random topic names and ciphertext.
+- Agent updates and letters are end-to-end encrypted with AES-256-GCM. The key is created by your phone and handed to your computer inside an X25519 key exchange when you link. The verification code lets you check that a relay has not substituted the exchange keys.
+- The relay (ntfy.sh by default) sees topic names, network metadata and encrypted event/letter payloads. During pairing it also sees computer labels, tool kind and public exchange keys.
 - Titles can be turned off. `wudland config titles off` sends the folder name instead of your prompt, and drops file names from notes.
 - You can run your own relay: `wudland config relay https://ntfy.example.com`. Your phone has to use the same one.
 - Hooks never block your agent. They exit straight away, send from a background process, and do nothing at all if you have not linked.
@@ -144,6 +144,6 @@ The shared code lives in `lib/`. `build:plugins` copies it into `claude-code/lib
 ## Links
 
 - The app: https://github.com/joexk1/wudland
-- The site: https://wudland.pages.dev
+- The site: https://wudland.netlify.app
 
 MIT licence. See [LICENSE](LICENSE).

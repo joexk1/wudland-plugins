@@ -2,7 +2,7 @@
 // on the network. Reads one JSON job on stdin:
 //   { evt }                    send now
 //   { sid, seq, delayMs }      wait, then send the pending event if still current
-import { readConfig, readState, writeState } from './config.mjs';
+import { readConfig, updateState } from './config.mjs';
 import { sendToLinks } from './send.mjs';
 import { takePending } from './throttle.mjs';
 
@@ -16,9 +16,8 @@ async function main() {
   let evt = job.evt;
   if (!evt) {
     await new Promise((r) => setTimeout(r, job.delayMs || 0));
-    const state = readState();
-    evt = takePending(state, job.sid, job.seq);
-    writeState(state);
+    if (!readConfig().links.length) return;
+    evt = updateState((state) => takePending(state, job.sid, job.seq));
   }
   if (!evt) return;
   const { links } = readConfig();

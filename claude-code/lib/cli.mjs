@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process';
 import { basename } from 'node:path';
 import { parseArgs } from 'node:util';
 import { randomHex } from './crypto.mjs';
-import { configDir, hostLabel, readConfig, readState, writeConfig, writeState } from './config.mjs';
+import { configDir, hostLabel, readConfig, readState, writeConfig, updateState } from './config.mjs';
 import { buildEvent, buildLetter, clip, folderName } from './events.mjs';
 import { runCodexNotify } from './codex.mjs';
 import { runHook } from './hook.mjs';
@@ -85,7 +85,7 @@ function cmdUnlink() {
   const n = cfg.links.length;
   cfg.links = [];
   writeConfig(cfg);
-  writeState({ ...readState(), sessions: {} });
+  updateState((state) => { state.sessions = {}; });
   out(n ? `Unlinked (${n} link${n === 1 ? '' : 's'} removed). You can also remove this computer in the app.` : 'Nothing was linked.');
   return 0;
 }
@@ -108,9 +108,7 @@ async function cmdLetter(args) {
   if (!title) { err('Usage: wudland letter "Title" "Body"'); return 1; }
   const cfg = readConfig();
   if (!cfg.links.length) { err('Not linked. Run: wudland link <code>'); return 1; }
-  const state = readState();
-  if (!allowLetter(state)) { err('Daily send limit reached. Try again tomorrow.'); return 1; }
-  writeState(state);
+  if (!updateState((state) => allowLetter(state))) { err('Daily send limit reached. Try again tomorrow.'); return 1; }
   const res = await sendToLinks(cfg.links, buildLetter({ from: hostLabel(cfg), title, body: body.join(' ') }));
   if (res.every((r) => r.ok)) { out('Letter sent.'); return 0; }
   err(`Could not send: ${res.find((r) => !r.ok).error}`);
@@ -188,9 +186,7 @@ async function cmdRun(args) {
 async function cmdTestSend() {
   const cfg = readConfig();
   if (!cfg.links.length) { err('Not linked. Run: wudland link <code>'); return 1; }
-  const state = readState();
-  if (!allowLetter(state)) { err('Daily send limit reached. Try again tomorrow.'); return 1; }
-  writeState(state);
+  if (!updateState((state) => allowLetter(state))) { err('Daily send limit reached. Try again tomorrow.'); return 1; }
   const evt = buildEvent({
     sid: `test-${hostLabel(cfg)}`, src: 'cli', host: hostLabel(cfg), name: 'Test from wudland', where: folderName(process.cwd()),
     state: 'idle', note: 'Hello from the command line', titles: cfg.titles,

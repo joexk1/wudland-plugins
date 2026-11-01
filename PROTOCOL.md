@@ -65,7 +65,7 @@ Plaintext:
   Users who want more can point `relay` at their own ntfy server (`wudland config relay https://ntfy.example.com`).
 
 ## The app reading events
-`GET {relay}/{inbox1},{inbox2},…/json?poll=1&since=<last message id, or 12h>` (all links in one request) every 8 s while the app is open, and once on return to the foreground. Decrypt; drop anything that fails to decrypt. The authenticated payload `at` must be less than 24 hours old and at most 5 minutes in the future; relay timestamps are not trusted. Persist the latest 1000 encrypted-box SHA256 fingerprints to reject duplicates across restarts; ignore session updates older than or equal to the latest authenticated session timestamp. Letter IDs derive from the link ID and encrypted-box fingerprint. Sessions with no event for 45 minutes are shown as asleep; after 24 hours they are forgotten.
+`GET {relay}/{inbox1},{inbox2},…/json?poll=1&since=<last message id, or 12h>` (all links in one request) every 8 s while the app is open, and once on return to the foreground. Decrypt; drop anything that fails to decrypt. The authenticated payload `at` must be less than 24 hours old and at most 5 minutes in the future; relay timestamps are not trusted. Persist the latest 1000 encrypted-box SHA256 fingerprints to reject duplicates across restarts; ignore session updates older than the latest authenticated session timestamp. Letter IDs derive from the link ID and encrypted-box fingerprint. Sessions with no event for 45 minutes are shown as asleep; after 24 hours they are forgotten.
 
 ## Unlinking
 The app forgets the link (the inbox goes quiet). `wudland unlink` removes it on the computer.

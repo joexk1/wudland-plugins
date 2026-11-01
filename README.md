@@ -100,7 +100,7 @@ I never send file contents, command lines, prompts beyond a 60 character title, 
 - The relay (ntfy.sh by default) sees topic names, network metadata and encrypted event/letter payloads. During pairing it also sees computer labels, tool kind and public exchange keys.
 - Titles can be turned off. `wudland config titles off` sends the folder name instead of your prompt, and drops file names from notes.
 - You can run your own relay: `wudland config relay https://ntfy.example.com`. Your phone has to use the same one.
-- Hooks never block your agent. They exit straight away, send from a background process, and do nothing at all if you have not linked.
+- Hooks never wait on relay requests. They make a short, bounded update to local state, send from a background process, and do nothing at all if you have not linked.
 
 The wire format is written down in [PROTOCOL.md](PROTOCOL.md).
 

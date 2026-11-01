@@ -57,8 +57,9 @@ export const WudlandPlugin = async ({ directory }) => {
         case "session.status":
           if (p.status?.type === "busy") emit(p.sessionID, "busy", { note: "Working" })
           break
-        case "permission.updated":
-          emit(p.sessionID, "waiting", { note: "Needs your permission" })
+        case "permission.asked": // current opencode
+        case "permission.updated": // older releases
+          emit(p.sessionID ?? p.info?.sessionID, "waiting", { note: "Needs your permission" })
           break
         case "permission.replied":
           emit(p.sessionID, "busy", { note: "Working" })

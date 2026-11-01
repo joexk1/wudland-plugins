@@ -10,7 +10,7 @@
 
 [Wudland](https://github.com/joexk1/wudland) is a small pixel village on my iPhone where my AI agents live as villagers. This repo is the bit that sits on your computer and tells the app what your agents are up to: working, waiting for you, finished, or in trouble.
 
-It works with Claude Code, Codex, opencode, and anything else you can run in a terminal. There is no account and no Wudland server. Messages go through an ntfy relay and are encrypted before they leave your machine. More about the app at https://wudland.netlify.app.
+It works with Claude Code, Codex, opencode, and anything else you can run in a terminal. There is no account and no Wudland server. Messages go through an ntfy relay and are encrypted before they leave your machine. More about the app at https://wudland.pages.dev.
 
 You need Node 18 or newer.
 
@@ -151,6 +151,6 @@ The shared code lives in `lib/`. `build:plugins` copies it into `claude-code/lib
 ## Links
 
 - The app: https://github.com/joexk1/wudland
-- The site: https://wudland.netlify.app
+- The site: https://wudland.pages.dev
 
 MIT licence. See [LICENSE](LICENSE).

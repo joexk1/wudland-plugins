@@ -110,8 +110,8 @@ It never sends file contents, command lines, prompts beyond a 60-character title
 
 | Step | What happens |
 | --- | --- |
-| Discovery | The phone's six-digit code is a TOTP (HMAC-SHA1, 60 s). The computer posts a `hello` with a fresh X25519 public key to a topic derived from it. |
-| Key exchange | The phone answers with its own public key. Both sides derive a key with HKDF-SHA256 and show an eight-digit code from it. That code never touches the relay. |
+| Discovery | The phone's six-digit code is a TOTP (HMAC-SHA1, 60 s). The computer posts a `hello` that commits to a fresh X25519 public key (SHA-256 hash) without revealing it. |
+| Key exchange | The phone answers with its own public key, and only then does the computer reveal its key, checked against the hello commitment. Both sides derive a key with HKDF-SHA256 and show an eight-digit code from it. That code never touches the relay. |
 | Welcome | Once you tap **Codes match**, the phone sends the link (inbox topic and a random 32-byte key) sealed with the derived key. It's saved in `~/.config/wudland/link.json`, mode 0600. |
 | Events | Each update is `w1.` plus an AES-256-GCM box posted to the inbox. States are `busy`, `waiting`, `idle`, `done` and `failed`. |
 | Reading | The app polls every 8 seconds while open, drops anything that won't decrypt or is stale, and puts sessions to sleep after 45 quiet minutes. |

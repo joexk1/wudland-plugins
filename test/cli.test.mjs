@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { unb64 } from '../lib/crypto.mjs';
 import { FakeApp, totp } from './helpers/app.mjs';
 import { startRelay } from './helpers/fake-relay.mjs';
 
@@ -33,17 +34,31 @@ test('pairing end to end against a fake relay, then events and letters decrypt',
   const code = app.code();
   assert.match(code, /^\d{6}$/);
 
-  // `link` polls every 3 s, so shorten nothing: the app answers as soon as hello lands.
+  // `link` polls every 3 s; v2 pairing needs two app rounds (challenge, then reveal -> welcome).
   const linkRun = run(BIN, ['link', code, '--relay', relay.url, '--kind', 'claude', '--name', 'Claude Code'], { home });
-  const hello = await wait(async () => (await app.handlePairing())[0]);
+  const hello = await wait(async () => {
+    const [msg] = await app.handlePairing();
+    if (!msg) return null;
+    return msg.t === 'hello' ? msg : null;
+  }, 9000);
   assert.ok(hello, 'app saw the hello');
   assert.equal(hello.t, 'hello');
-  assert.equal(hello.v, 1);
+  assert.equal(hello.v, 2);
   assert.equal(hello.name, 'Claude Code');
   assert.equal(hello.kind, 'claude');
-  assert.equal(Buffer.from(hello.pk, 'base64').length, 32);
+  assert.ok(hello.commit, 'hello carries a commitment');
+  assert.equal(unb64(hello.commit).length, 32);
+  assert.ok(!hello.pk, 'v2 hello carries no public key yet');
   assert.equal(Buffer.from(hello.nonce, 'base64').length, 16);
   assert.match(hello.host, /^[^.A-Z]{1,24}$/);
+
+  // the reveal round: keep driving until the reveal lands and the app welcomes
+  await wait(async () => {
+    const msgs = await app.handlePairing();
+    return app.links.length > 0 && msgs !== null ? app.links[0] : null;
+  }, 9000);
+  assert.equal(app.pending.size, 0, 'nothing left pending after the reveal');
+  assert.match(app.links[0].inbox, /^wudland-/);
 
   const r = await linkRun;
   assert.equal(r.code, 0, r.stderr);
@@ -138,7 +153,8 @@ test('config, emit and run', async (t) => {
   const home = mkdtempSync(join(tmpdir(), 'wudland-cli-'));
   const app = new FakeApp(relay.url);
   const linkRun = run(BIN, ['link', app.code(), '--relay', relay.url], { home });
-  await wait(async () => (await app.handlePairing())[0]);
+  await wait(async () => { await app.handlePairing(); return app.links.length > 0 ? app.links[0] : null; }, 9000);
+  assert.equal(app.pending.size, 0, 'v2 reveal handled');
   assert.equal((await linkRun).code, 0);
 
   assert.equal((await run(BIN, ['config', 'titles', 'off'], { home })).code, 0);

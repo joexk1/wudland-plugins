@@ -1,7 +1,7 @@
 {
   "name": "wudland-link",
   "version": "0.1.0",
-  "description": "Link coding agents on this computer to the Wudland iPhone app, end-to-end encrypted.",
+  "description": "Works with AI coding agents such as Claude Code, Codex and opencode: shows their sessions as villagers in the Wudland iPhone app, end-to-end encrypted.",
   "type": "module",
   "bin": { "wudland": "bin/wudland.mjs" },
   "files": ["bin", "lib", "claude-code", "codex", "opencode", "scripts", ".claude-plugin", "assets/icon-256.png", "README.md", "LICENSE"],
@@ -13,6 +13,6 @@
   "license": "MIT",
   "author": "joexk1",
   "repository": { "type": "git", "url": "git+https://github.com/joexk1/wudland-plugins.git" },
-  "homepage": "https://wudland.netlify.app",
+  "homepage": "https://wudland.pages.dev",
   "keywords": ["wudland", "claude-code", "codex", "opencode", "agents"]
 }

@@ -77,7 +77,20 @@ export const randomHex = (n) => randomBytes(n).toString('hex');
 
 /** Compare on both devices before approving a pairing. Never transmit this value. */
 export function verificationCode(key) {
-  const value = createHash('sha256').update('wudland-verify-v1:').update(key).digest().readUInt32BE(0) % 100000000;
+  const value = createHash('sha256').update('wudland-verify-v2:').update(key).digest().readUInt32BE(0) % 100000000;
   const digits = String(value).padStart(8, '0');
   return `${digits.slice(0, 4)} ${digits.slice(4)}`;
+}
+
+/** Pairing commitment: SHA256(rawPublicKey || nonce), base64. Sent in the hello so the
+    plugin's public key can only be revealed after the phone's challenge. */
+export function commitment(pk, nonce) {
+  return b64(createHash('sha256').update(Buffer.concat([Buffer.from(pk), Buffer.from(nonce)])).digest());
+}
+
+/** Check a base64 commitment against raw pk and nonce. */
+export function verifyCommitment(commitB64, pk, nonce) {
+  const raw = unb64(commitB64);
+  const expected = createHash('sha256').update(Buffer.concat([Buffer.from(pk), Buffer.from(nonce)])).digest();
+  return raw.length === 32 && raw.equals(expected);
 }

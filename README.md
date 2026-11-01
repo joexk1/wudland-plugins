@@ -22,6 +22,13 @@ First, the command line tool. You need it to link your computer, and the Codex a
 npm i -g github:joexk1/wudland-plugins
 ```
 
+
+If your npm version refuses GitHub packages with `EALLOWGIT`, allow this direct dependency for that command:
+
+```sh
+npm i -g --allow-git=root github:joexk1/wudland-plugins
+```
+
 Then add whichever agents you use.
 
 ### Claude Code

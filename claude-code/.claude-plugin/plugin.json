@@ -1,0 +1,10 @@
+{
+  "name": "wudland",
+  "version": "0.1.0",
+  "description": "Shows Claude Code sessions as villagers in the Wudland iPhone app. End-to-end encrypted.",
+  "author": { "name": "joexk1" },
+  "homepage": "https://github.com/joexk1/wudland-plugins",
+  "repository": "https://github.com/joexk1/wudland-plugins",
+  "license": "MIT",
+  "keywords": ["wudland", "notifications", "status"]
+}

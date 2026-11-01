@@ -1,0 +1,12 @@
+{
+  "name": "wudland",
+  "owner": { "name": "joexk1" },
+  "metadata": { "description": "Show your coding agents as villagers in the Wudland iPhone app." },
+  "plugins": [
+    {
+      "name": "wudland",
+      "source": "./claude-code",
+      "description": "Shows Claude Code sessions as villagers in the Wudland iPhone app. End-to-end encrypted."
+    }
+  ]
+}

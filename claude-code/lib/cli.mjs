@@ -13,7 +13,7 @@ import { sendToLinks } from './send.mjs';
 import { LIMITS, allowLetter, utcDay } from './throttle.mjs';
 import { track } from './track.mjs';
 
-const VERSION = '0.1.0';
+const VERSION = '0.1.1';
 
 const HELP = `wudland ${VERSION}: link coding agents to the Wudland app
 

@@ -6,7 +6,7 @@
 
 <p align="center">The bit on your computer that puts your coding agents in the village.</p>
 
-<p align="center"><a href="https://wudland.pages.dev"><b>wudland.pages.dev</b></a> · <a href="https://github.com/joexk1/wudland">The iPhone app</a></p>
+<p align="center"><a href="https://wudland.pages.dev"><b>wudland.pages.dev</b></a> · <a href="https://apps.apple.com/us/app/wudland/id6829491480">Download the iPhone app</a> · <a href="https://github.com/joexk1/wudland">App source</a></p>
 
 ![A terminal linking to Wudland, and the agents sat at their desks in the guild](assets/hero.png)
 
@@ -22,7 +22,9 @@ Villagers are named after the tool they came from: Claude, Codex, opencode, Anti
 
 ## Install
 
-First the command-line tool. It does the linking, and the Codex and opencode plugins call it. You need Node 18 or newer.
+Get [Wudland free on the App Store](https://apps.apple.com/us/app/wudland/id6829491480) for iPhone with iOS 26 or later.
+
+Then install the command-line tool. It does the linking, and the Codex and opencode plugins call it. You need Node 18 or newer.
 
 ```sh
 npm i -g github:joexk1/wudland-plugins
